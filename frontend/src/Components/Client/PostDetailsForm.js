@@ -8,24 +8,24 @@ import Footer from '../Home/Footer/footer';
 const PostDetailsForm = () => {
   const { register, handleSubmit, control, formState: { errors } } = useForm({
     defaultValues: {
-      interview_dates: [{ date: '', location: '' }], // Initialized with empty fields
+      interview_dates: [{ interview_date: '', interview_location: '' }],
       job_roles: [''],
       certifications: [''],
-      work_type: '', // Initialize work type as empty string
-      no_of_vacancies: null, // Change default value to null
-      salary_details: '', // Initialize salary details
-      no_of_vacancy_required: '', // Initialize number of vacancies required
+      work_type: '',
+      no_of_vacancies: null,
+      salary_details: '',
+      no_of_vacancy_required: '',
     },
   });
 
   const { fields: interviewFields, append: appendInterview, remove: removeInterview } = useFieldArray({
     control,
-    name: 'interview_dates', // Match Django model
+    name: 'interview_dates',
   });
 
   const { fields: jobRoleFields, append: appendJobRole, remove: removeJobRole } = useFieldArray({
     control,
-    name: 'job_roles', // Ensure this matches your Django model
+    name: 'job_roles',
   });
 
   const { fields: certificationFields, append: appendCertification, remove: removeCertification } = useFieldArray({
@@ -34,34 +34,30 @@ const PostDetailsForm = () => {
   });
 
   const onSubmit = async (data) => {
-    // Handle number of vacancies
-    if (data.no_of_vacancies === '') {
-      data.no_of_vacancies = null;
-    } else {
-      data.no_of_vacancies = parseInt(data.no_of_vacancies, 10);
-    }
-  
-    // Take the first job role if it exists
-    if (data.job_roles && data.job_roles.length > 0) {
-      data.job_roles = data.job_roles[0]; // Save the first job role as a string
-    } else {
-      data.job_roles = ""; // Handle empty case
-    }
+    // Ensure no_of_vacancies is set properly
+    data.no_of_vacancies = data.no_of_vacancies ? parseInt(data.no_of_vacancies, 10) : null;
 
-    // Prepare interview details for submission
-    const interviewDetails = data.interview_dates.map(({ date, location }) => ({
-      date,
-      location,
+    // Handle job roles (assuming the first role is selected)
+    data.job_roles = data.job_roles[0] || ''; // Ensure it sends a valid job role or an empty string
+
+    // Convert no_of_vacancy_required to integer if provided
+    data.no_of_vacancy_required = data.no_of_vacancy_required ? parseInt(data.no_of_vacancy_required, 10) : null;
+
+    // Prepare interview details
+    const interviewDetails = data.interview_dates.map(({ interview_date, interview_location }) => ({
+      interview_date,
+      interview_location,
     }));
 
-    // Create the payload to send to the server
+    // Create the payload for submission
     const payload = {
       ...data,
-      interview_details: interviewDetails // Add interview details here
+      interview_dates: interviewDetails.map(i => i.interview_date).join(','), // Join dates for backend
+      interview_locations: interviewDetails.map(i => i.interview_location).join(','), // Join locations for backend
     };
 
     console.log('Form data submitted:', payload);
-  
+
     try {
       const response = await axios.post('http://localhost:8000/api/hiring-details/', payload);
       console.log('Success:', response.data);
@@ -70,7 +66,6 @@ const PostDetailsForm = () => {
       console.log('Error response:', error.response.data);
     }
   };
-  
 
   return (
     <div>
@@ -118,7 +113,7 @@ const PostDetailsForm = () => {
             {errors.certifications && <p className="error">{errors.certifications.message}</p>}
           </div>
 
-          {/* Other Fields */}
+          {/* Qualification Section */}
           <div className="form-group">
             <label htmlFor="qualification">Qualification</label>
             <input
@@ -130,6 +125,7 @@ const PostDetailsForm = () => {
             {errors.qualification && <p className="error">{errors.qualification.message}</p>}
           </div>
 
+          {/* Gender Section */}
           <div className="form-group">
             <label>Gender</label>
             <div className="gender-group">
@@ -161,6 +157,7 @@ const PostDetailsForm = () => {
             {errors.gender && <p className="error">{errors.gender.message}</p>}
           </div>
 
+          {/* Area of Interest */}
           <div className="form-group">
             <label htmlFor="areaOfInterest">Area of Interest</label>
             <input
@@ -172,6 +169,7 @@ const PostDetailsForm = () => {
             {errors.area_of_interest && <p className="error">{errors.area_of_interest.message}</p>}
           </div>
 
+          {/* Specialization */}
           <div className="form-group">
             <label htmlFor="specialization">Specialization</label>
             <input
@@ -183,39 +181,43 @@ const PostDetailsForm = () => {
             {errors.specialization && <p className="error">{errors.specialization.message}</p>}
           </div>
 
+          {/* Experience */}
           <div className="form-group">
-            <label htmlFor="experience">Fresher/Experience</label>
+            <label htmlFor="experience">Experience (in years)</label>
             <input
               id="experience"
-              type="text"
+              type="number"
               className="input-field"
-              {...register('experience', { required: 'Experience status is required' })}
+              {...register('experience', { required: 'Experience is required', min: 0 })}
             />
             {errors.experience && <p className="error">{errors.experience.message}</p>}
           </div>
 
+          {/* Passed Out Year */}
           <div className="form-group">
-            <label htmlFor="passedOut">Passed Out</label>
+            <label htmlFor="passed_out">Passed Out Year</label>
             <input
-              id="passedOut"
-              type="text"
+              id="passed_out"
+              type="number"
               className="input-field"
-              {...register('passed_out', { required: 'Passed Out year is required' })}
+              {...register('passed_out', { required: 'Passed Out Year is required', min: 1900, max: new Date().getFullYear() })}
             />
             {errors.passed_out && <p className="error">{errors.passed_out.message}</p>}
           </div>
 
+          {/* Age No Ratio */}
           <div className="form-group">
-            <label htmlFor="ageNoRatio">Age/No Ratio</label>
+            <label htmlFor="age_no_ratio">Age No Ratio</label>
             <input
-              id="ageNoRatio"
-              type="text"
+              id="age_no_ratio"
+              type="number"
               className="input-field"
-              {...register('age_no_ratio', { required: 'Age or No Ratio is required' })}
+              {...register('age_no_ratio', { required: 'Age No Ratio is required', min: 0 })}
             />
             {errors.age_no_ratio && <p className="error">{errors.age_no_ratio.message}</p>}
           </div>
 
+          {/* Location */}
           <div className="form-group">
             <label htmlFor="location">Location</label>
             <input
@@ -227,10 +229,11 @@ const PostDetailsForm = () => {
             {errors.location && <p className="error">{errors.location.message}</p>}
           </div>
 
+          {/* Work Type */}
           <div className="form-group">
-            <label htmlFor="workType">Work Type</label>
+            <label htmlFor="work_type">Work Type</label>
             <input
-              id="workType"
+              id="work_type"
               type="text"
               className="input-field"
               {...register('work_type', { required: 'Work Type is required' })}
@@ -238,20 +241,23 @@ const PostDetailsForm = () => {
             {errors.work_type && <p className="error">{errors.work_type.message}</p>}
           </div>
 
+          {/* Number of Vacancies */}
           <div className="form-group">
-            <label htmlFor="noOfVacancies">Number of Vacancies</label>
+            <label htmlFor="no_of_vacancies">Number of Vacancies</label>
             <input
-              id="noOfVacancies"
+              id="no_of_vacancies"
               type="number"
               className="input-field"
-              {...register('no_of_vacancies')}
+              {...register('no_of_vacancies', { required: 'Number of Vacancies is required', min: 1 })}
             />
+            {errors.no_of_vacancies && <p className="error">{errors.no_of_vacancies.message}</p>}
           </div>
 
+          {/* Salary Details */}
           <div className="form-group">
-            <label htmlFor="salaryDetails">Salary Details</label>
+            <label htmlFor="salary_details">Salary Details</label>
             <input
-              id="salaryDetails"
+              id="salary_details"
               type="text"
               className="input-field"
               {...register('salary_details', { required: 'Salary Details are required' })}
@@ -259,34 +265,35 @@ const PostDetailsForm = () => {
             {errors.salary_details && <p className="error">{errors.salary_details.message}</p>}
           </div>
 
+          {/* Number of Vacancy Required */}
           <div className="form-group">
-            <label htmlFor="noOfVacancyRequired">Number of Vacancy Required</label>
+            <label htmlFor="no_of_vacancy_required">Number of Vacancy Required</label>
             <input
-              id="noOfVacancyRequired"
+              id="no_of_vacancy_required"
               type="number"
               className="input-field"
-              {...register('no_of_vacancy_required', { required: 'Number of Vacancy Required is required' })}
+              {...register('no_of_vacancy_required', { required: 'Number of Vacancy Required is required', min: 1 })}
             />
             {errors.no_of_vacancy_required && <p className="error">{errors.no_of_vacancy_required.message}</p>}
           </div>
 
-          {/* Interview Details Section */}
+          {/* Interview Dates */}
           <div className="form-group">
-            <label>Interview Details</label>
-            <button type="button" className="add-more" onClick={() => appendInterview({ date: '', location: '' })}>Add Interview</button>
+            <label>Interview Dates</label>
+            <button type="button" className="add-more" onClick={() => appendInterview({ interview_date: '', interview_location: '' })}>Add More</button>
             {interviewFields.map((field, index) => (
               <div key={field.id} className="interview-field">
                 <input
                   type="date"
+                  placeholder="Interview Date"
                   className="input-field"
-                  placeholder="Date"
-                  {...register(`interview_dates.${index}.date`, { required: 'Date is required' })}
+                  {...register(`interview_dates.${index}.interview_date`, { required: 'Interview Date is required' })}
                 />
                 <input
                   type="text"
+                  placeholder="Interview Location"
                   className="input-field"
-                  placeholder="Location"
-                  {...register(`interview_dates.${index}.location`, { required: 'Location is required' })}
+                  {...register(`interview_dates.${index}.interview_location`, { required: 'Interview Location is required' })}
                 />
                 {interviewFields.length > 1 && (
                   <button type="button" className="remove" onClick={() => removeInterview(index)}>Remove</button>
@@ -296,6 +303,7 @@ const PostDetailsForm = () => {
             {errors.interview_dates && <p className="error">{errors.interview_dates.message}</p>}
           </div>
 
+          {/* Submit Button */}
           <button type="submit" className="submit-button">Submit</button>
         </form>
       </div>

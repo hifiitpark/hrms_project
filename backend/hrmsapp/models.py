@@ -1,19 +1,16 @@
 from django.db import models
 
-#contactus
+# Contact Us Model
 class Contact(models.Model):
     username = models.CharField(max_length=100)
     email = models.EmailField()
     phone = models.CharField(max_length=15)
     message = models.TextField()
 
-
     def __str__(self):
         return self.username
-    
 
-
-#signup
+# Signup Model
 class Signup(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
@@ -22,31 +19,37 @@ class Signup(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.first_name
+        return f"{self.first_name} {self.last_name}"
 
-
-####################
-# Hiring Post Details
-
+# Hiring Post Details Model
 class HiringDetails(models.Model):
-    job_roles = models.JSONField()  # Store array of job roles
+    GENDER_CHOICES = [
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('other', 'Other'),
+    ]
+
+    job_roles = models.CharField(max_length=100)  # Job role title
     qualification = models.CharField(max_length=100)
-    gender = models.CharField(max_length=10)  # male, female, other
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     area_of_interest = models.CharField(max_length=100)
     specialization = models.CharField(max_length=100)
-    experience = models.CharField(max_length=50)  # fresher or experience description
-    passed_out = models.CharField(max_length=4)  # Year of passing out
-    age_no_ratio = models.CharField(max_length=10)  # Age or No Ratio
+    experience = models.PositiveIntegerField()  # Years of experience
+    passed_out = models.PositiveIntegerField()  # Year of graduation
+    age_no_ratio = models.PositiveIntegerField()  # Age of candidate
     location = models.CharField(max_length=100)
-    work_type = models.CharField(max_length=20)  # Full-time, Part-time, etc.
-    no_of_vacancies = models.IntegerField()
+    work_type = models.CharField(max_length=20)
+    no_of_vacancies = models.PositiveIntegerField()  # Total vacancies available
     salary_details = models.CharField(max_length=100)
-    no_of_vacancy_required = models.IntegerField()
-    
-    # Split interview_details into interview_data and interview_location
-    interview_data = models.JSONField(default=list)  # Store interview dates
-    interview_location = models.JSONField(default=list)  # Store interview locations
+    no_of_vacancy_required = models.PositiveIntegerField()  # Number of vacancies required
+    interview_dates = models.TextField(null=True, blank=True)  # Allow null values
+    interview_locations = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return f"Hiring for {self.job_roles} at {self.location}"
- 
+        return f"Hiring for role: {self.job_roles} at {self.location}"
+
+    def get_interview_details(self):
+        """Helper method to get interview details."""
+        dates = self.interview_dates.split(',') if self.interview_dates else []
+        locations = self.interview_locations.split(',') if self.interview_locations else []
+        return list(zip(dates, locations))

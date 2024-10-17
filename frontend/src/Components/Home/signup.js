@@ -9,10 +9,13 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/system";
 import { useNavigate } from "react-router-dom";
-import Footer from "./Footer/footer";
-import Header from "./Header/header";
+import Footer from "./Footer/footer"; // Ensure these paths are correct
+import Header from "./Header/header"; // Ensure these paths are correct
 
+// Styled component for responsive layout
 const ResponsiveBox = styled(Box)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "row",
   [theme.breakpoints.down("sm")]: {
     flexDirection: "column",
   },
@@ -28,31 +31,38 @@ function Signup() {
 
   const navigate = useNavigate();
 
+  // Handle input change
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
-  
-
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    const response = await fetch("http://localhost:8000/api/signup/", {
-      method: "POST",
-      body: JSON.stringify(FormData),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData), // Make sure you're sending the correct data
-    });
-  
-    const data = await response.json();
-    if (response.ok) {
+
+    try {
+      const response = await fetch("http://localhost:8000/api/api/signup/", {
+        method: "POST",
+        body: JSON.stringify(formData),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text(); // Fetch error response
+        console.error("Error response:", errorData);
+        alert("Signup failed: " + errorData);
+        return;
+      }
+
+      const data = await response.json();
       alert("Signup successful");
 
+      // Reset the form
       setFormData({
         first_name: "",
         last_name: "",
@@ -60,14 +70,12 @@ function Signup() {
         password: "",
       });
 
-      navigate("/choose_user_type");
-    } else {
-      alert("Signup failed");
-      console.error(data);
+      navigate("/choose_user_type"); // Redirect to the next page
+    } catch (error) {
+      console.error("Error during signup:", error);
+      alert("An error occurred during signup. Please try again later.");
     }
   };
-  
-  
 
   return (
     <div>
@@ -93,47 +101,20 @@ function Signup() {
             marginBottom: 2,
           }}
         >
-          <ResponsiveBox sx={{ display: "flex" }}>
-            <Grid
-              item
-              xs={12}
-              md={6}
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                p: 2,
-              }}
-            >
-              <Typography
-                variant="h4"
-                align="center"
-                gutterBottom
-                fontWeight={"bold"}
-              >
-                Welcome Back!
+          <ResponsiveBox>
+            <Grid item xs={12} md={6} sx={{ display: "flex", flexDirection: "column", justifyContent: "center", p: 2 }}>
+              <Typography variant="h4" align="center" gutterBottom fontWeight={"bold"}>
+                Welcome!
               </Typography>
-              <Typography
-                variant="h6"
-                align="center"
-                gutterBottom
-                fontWeight={"bold"}
-              >
-                Welcome to your next opportunity.
+              <Typography variant="h6" align="center" gutterBottom fontWeight={"bold"}>
+                Join us and start your journey!
               </Typography>
               <Typography variant="body1" align="center" gutterBottom>
-                Log in to connect with top employers and take the next step in
-                your career journey.
+                Create your account to connect with top employers and take the next step in your career journey.
               </Typography>
-              {/* ...image and content... */}
             </Grid>
-            <Grid item xs={12} md={3} sx={{ p: 2 }}>
-              <Typography
-                variant="h4"
-                align="center"
-                gutterBottom
-                fontWeight={"bold"}
-              >
+            <Grid item xs={12} md={6} sx={{ p: 2 }}>
+              <Typography variant="h4" align="center" gutterBottom fontWeight={"bold"}>
                 Sign Up
               </Typography>
               <form onSubmit={handleSubmit}>
