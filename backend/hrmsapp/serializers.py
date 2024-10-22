@@ -1,16 +1,17 @@
+from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Contact
-from .models import Signup
-from django.contrib.auth import authenticate
 
-
-class ContactSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Contact
-        fields = '__all__'
+        model = User
+        fields = ('username', 'email', 'password')
 
+    def create(self, validated_data):
+        user = User(**validated_data)
+        user.set_password(validated_data['password'])  # Hash the password
+        user.save()
+        return user
 
-class SignupSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Signup
-        fields = '__all__'
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()

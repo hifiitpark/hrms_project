@@ -5,6 +5,8 @@ import Footer from '../../Home/Footer/footer';
 import Header from '../../Home/Header/header';
 
 function CandidateRegistrationForm() {
+  const technicalSkills = ['JavaScript', 'React', 'Node.js', 'Python', 'SQL'];
+  const nonTechnicalSkills = ['Communication', 'Problem-solving', 'Teamwork', 'Time Management', 'Leadership'];
   const [educationDetails, setEducationDetails] = useState([{ schoolName: '', board: '', qualification: '', specialization: '', startYear: '', endYear: '', cgpa: '' }]);
   // const [experienceDetails, setExperienceDetails] = useState([{ companyName: '', domain: '', jobRole: '', yearOfExperience: '', salaryPerAnnum: '' }]);
   const [certifications, setCertifications] = useState([{ certificateName: '', issuedOrganization: '', issueOfDate: '', certificationValidity: '' }]);
@@ -70,8 +72,8 @@ function CandidateRegistrationForm() {
   const [selectedSkill, setSelectedSkill] = useState('Technical');
 
   // Function to handle skill selection
-  const handleSkillChange = (skill) => {
-    setSelectedSkill(skill);
+  const handleSkillChange = (type) => {
+    setSelectedSkill(type);
   };
     
   const [selectedexpType, setSelectedexpType] = useState('Experienced'); // Default to 'Experienced'
@@ -107,6 +109,8 @@ function CandidateRegistrationForm() {
     console.log('Form Submitted', { educationDetails, experienceDetails, certifications });
   };
 
+  
+
   return (
     <div>
       <Header/>
@@ -136,7 +140,7 @@ function CandidateRegistrationForm() {
         <input type="email" name="email" placeholder="Email" className="input-field" />
 
         <label>Phone Number</label>
-        <input type="text" name="phoneNumber" placeholder="Phone Number" className="input-field" />
+        <input type="tel" name="phoneNumber" placeholder="Phone Number" className="input-field" />
 
         <label>Current Position</label>
         <input type="text" name="currentPosition" placeholder="Current Position" className="input-field" />
@@ -151,11 +155,9 @@ function CandidateRegistrationForm() {
           <label><input type="radio" name="maritalStatus" value="Others" />  Others</label>
         </div>
 
-        <label>Country</label>
-        <input type="text" name="country" placeholder="Country" className="input-field" />
 
-        <label>State</label>
-        <input type="text" name="state" placeholder="State" className="input-field" />
+        <label>Address</label>
+        <input type="text" name="address" placeholder="Enter your address" className="input-field" />
 
         <label>City</label>
         <input type="text" name="city" placeholder="City" className="input-field" />
@@ -163,15 +165,18 @@ function CandidateRegistrationForm() {
         <label>Pincode</label>
         <input type="text" name="pincode" placeholder="Pincode" className="input-field" />
 
-        <label>Door No.</label>
-        <input type="text" name="doorNo" placeholder="Door No." className="input-field" />
+        <label>State</label>
+        <input type="text" name="state" placeholder="State" className="input-field" />
+
+        <label>Country</label>
+        <input type="text" name="country" placeholder="Country" className="input-field" />
       </div>
 
       <div className="section">
         <h2>Education Details</h2>
         {educationDetails.map((education, index) => (
           <div key={index} className="education-group">
-            <label>School Name</label>
+            <label>School/College Name</label>
             <input type="text" name="schoolName" placeholder="School Name" className="input-field" value={education.schoolName} onChange={(e) => handleEducationChange(index, e)} />
             
             <label>Board</label>
@@ -306,11 +311,14 @@ function CandidateRegistrationForm() {
             <input type="text" name="instiuteName" placeholder="Institute Name" className="input-field" value={certification.issuedOrganization} onChange={(e) => handleCertificationChange(index, e)} />
             
             <label>Course Duration</label>
+            <div className='coursestart'>
+            <lable><b>start</b></lable>
             <input type="date" name="coursestartDate" className="input-field" value={certification.issueOfDate} onChange={(e) => handleCertificationChange(index, e)} />
+            <lable><b>end</b></lable>
             <input type="date" name="courseendDate" className="input-field" value={certification.issueOfDate} onChange={(e) => handleCertificationChange(index, e)} />
-            
-            <label>Validity Date</label>
-            <input type="date" name="ValidityDate" className="input-field" value={certification.certificationValidity} onChange={(e) => handleCertificationChange(index, e)} />
+            </div>
+            {/* <label>Validity Date</label>
+            <input type="date" name="ValidityDate" className="input-field" value={certification.certificationValidity} onChange={(e) => handleCertificationChange(index, e)} /> */}
             <label>License</label>
             <input type="text" name="License" placeholder="License" className="input-field" value={certification.certificationValidity} onChange={(e) => handleCertificationChange(index, e)} />
 
@@ -334,11 +342,11 @@ function CandidateRegistrationForm() {
             <label>Issued Organization</label>
             <input type="text" name="issuedOrganization" placeholder="Issued Organization" className="input-field" value={certification.issuedOrganization} onChange={(e) => handleCertificationChange(index, e)} />
             
-            <label>Issue of Date</label>
+            <label> Date of Issue </label>
             <input type="date" name="issueOfDate" className="input-field" value={certification.issueOfDate} onChange={(e) => handleCertificationChange(index, e)} />
             
-            <label>Certification Validity</label>
-            <input type="date" name="certificationValidity" className="input-field" value={certification.certificationValidity} onChange={(e) => handleCertificationChange(index, e)} />
+            {/* <label>Certification Validity</label>
+            <input type="date" name="certificationValidity" className="input-field" value={certification.certificationValidity} onChange={(e) => handleCertificationChange(index, e)} /> */}
 
 
             <label>Certification Input</label>
@@ -355,27 +363,51 @@ function CandidateRegistrationForm() {
       </div>
 
       <div className="section">
-        <h2>Skills</h2>
-        {certifications.map((certification, index) => (
-          <div key={index} className="certification-group">
-            <label>Skill</label>
-            <div style={{ display: 'flex',marginBottom: '15px' }}>
-      {/* Button for Technical */}
-      <button
-        className={`skill-button ${selectedSkill === 'Technical' ? 'active' : ''}`}
-        onClick={() => handleSkillChange('Technical')}
-      >
-        Technical
-      </button>
+      <h2>Skills</h2>
+      {certifications.map((certification, index) => (
+        <div key={index} className="certification-group">
+          <label>Skill</label>
+          <div style={{ display: 'flex', marginBottom: '15px' }}>
+            {/* Button for Technical */}
+            <button
+              className={`skill-button ${selectedSkill === 'Technical' ? 'active' : ''}`}
+              onClick={() => handleSkillChange('Technical')}
+            >
+              Technical
+            </button>
 
-      {/* Button for Non-Technical */}
-      <button
-        className={`skill-button ${selectedSkill === 'Non-Technical' ? 'active' : ''}`}
-        onClick={() => handleSkillChange('Non-Technical')}
-      >
-        Non-Technical
-      </button>
-    </div>
+            {/* Button for Non-Technical */}
+            <button
+              className={`skill-button ${selectedSkill === 'Non-Technical' ? 'active' : ''}`}
+              onClick={() => handleSkillChange('Non-Technical')}
+            >
+              Non-Technical
+            </button>
+          </div>
+
+          {/* Conditional Dropdown */}
+          {selectedSkill === 'Technical' && (
+            <select className='skillset'>
+              <option value="">Select Technical Skill</option>
+              {technicalSkills.map((skill, index) => (
+                <option key={index} value={skill}>
+                  {skill}
+                </option>
+              ))}
+            </select>
+          )}
+          {selectedSkill === 'Non-Technical' && (
+            <select className='skillset'>
+              <option value="">Select Non-Technical Skill</option>
+              {nonTechnicalSkills.map((skill, index) => (
+                <option key={index} value={skill}>
+                  {skill}
+                </option>
+              ))}
+            </select>
+          )}
+        
+      
             
             <label>Area of Interest</label>
             <input type="text" name="areofInterest" placeholder="Area of Interest" className="input-field" value={certification.issuedOrganization} onChange={(e) => handleCertificationChange(index, e)} />
@@ -383,16 +415,18 @@ function CandidateRegistrationForm() {
             <label>Expected CTC</label>
             <input type="number" name="expectedCTC" placeholder="Expected CTC" className="input-field" value={certification.issuedOrganization} onChange={(e) => handleCertificationChange(index, e)} />
             
-            <label>Resume CV</label>
-            <input type="file" name="resume" className="input-file" />
 
-            <label>Signature</label>
-            <input type="file" name="signature" className="input-file" />
               </div>
         ))}
       </div>   
 
+<div className='section'>
+<label>Resume CV</label>
+            <input type="file" name="resume" className="input-file" />
 
+            <label>Signature</label>
+            <input type="file" name="signature" className="input-file" />
+</div>
 
       <div className="form-group">
           <label className='declaration_lbl'>

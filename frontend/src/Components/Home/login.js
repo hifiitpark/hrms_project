@@ -1,28 +1,45 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Grid,
   Box,
   Typography,
   TextField,
   Button,
-
   useTheme,
   useMediaQuery,
 } from "@mui/material";
 import { FaGoogle } from "react-icons/fa";
-import img2 from "../Assets/loginimg/welcome1.png"
-import { Link } from "react-router-dom";
+import img2 from "../Assets/loginimg/welcome1.png";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "./Header/header";
 import Footer from "./Footer/footer";
 
 function Login() {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  const handleLogin = async () => {
+    const response = await fetch("http://localhost:8000/api/login/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (response.ok) {
+      navigate("/dashboard"); // Redirect to dashboard after login
+    } else {
+      alert("Login failed. Please check your credentials.");
+    }
+  };
 
   return (
     <Box sx={{ backgroundColor: "#b8a5fe" }}>
-      
-<Header/>
+      <Header />
       <Grid container justifyContent="center">
         <Grid
           item
@@ -81,6 +98,8 @@ function Login() {
                 fullWidth
                 label="Username"
                 variant="outlined"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 sx={{ mb: 3 }}
               />
               <TextField
@@ -88,18 +107,22 @@ function Login() {
                 label="Password"
                 type="password"
                 variant="outlined"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 sx={{ mb: 3 }}
               />
-<Link to="/forgot">
-              <Box sx={{ textAlign: "center", mb: 2 }}>
-                Forgot Password?
-              </Box></Link>
+              <Link to="/forgot">
+                <Box sx={{ textAlign: "center", mb: 2 }}>
+                  Forgot Password?
+                </Box>
+              </Link>
 
               <Button
                 fullWidth
                 variant="contained"
                 color="primary"
                 sx={{ mb: 2, bgcolor: "#b8a5fe" }}
+                onClick={handleLogin}
               >
                 Login
               </Button>
@@ -123,7 +146,7 @@ function Login() {
           </Box>
         </Grid>
       </Grid>
-      <Footer/>
+      <Footer />
     </Box>
   );
 }

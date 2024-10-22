@@ -262,24 +262,7 @@ const PostDetailsForm = () => {
           {errors.noOfVacancyRequired && <p className="error">{errors.noOfVacancyRequired.message}</p>}
         </div>
 
-        {/* <div className="form-group">
-          <label>Certifications</label>
-          {certifications.map((cert, index) => (
-            <div key={index} className="certification-field">
-              <input
-                type="text"
-                 className="input-field"
-                placeholder="Certification"
-                value={cert}
-                onChange={(e) => handleCertificationChange(index, e.target.value)}
-              />
-              {certifications.length > 1 && (
-                <button type="button" className="remove" onClick={() => setCertifications(certifications.filter((_, i) => i !== index))}>Remove</button>
-              )}
-            </div>
-          ))}
-          <button type="button" className="add-certification" onClick={addCertification}>Add More Certification</button>
-        </div> */}
+      
 
         <div className="submit-div">
           <Link to="/client_dashboard">

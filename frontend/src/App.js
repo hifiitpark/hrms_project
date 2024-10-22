@@ -1,4 +1,4 @@
-// import PostDetailsForm from './Components/Client/PostDetailsForm';
+import PostDetailsForm from './Components/Client/PostDetailsForm';
 
 import { Route, Routes } from "react-router-dom";
 import Home from "./Components/Home/HomePage/Home";
@@ -32,11 +32,14 @@ import HRViewJobDetails from "./Components/HR/ViewJobDtailsHR/HRViewJobDetails";
 import HRAppliedJobs from "./Components/HR/HRAppliedJobs/HRAppliedJobs";
 import HRCandidateDatabasePage from "./Components/HR/HRCandidateDatabasePage/HRCandidateDatabasePage";
 import HRClientDatabasePage from "./Components/HR/HRClientDatabasePage/HRClientDatabasePage";
-import WelcomePage from "./Components/welcomePage";
+import WelcomePage from "./Components/Candidate/welcomePage";
 import CandidateFeedback from "./Components/Candidate/CandidateFeedback/CandidateFeedback";
 import FeedbackForm from "./Components/Client/ClientFeedback/CandidateFeedback";
 import HRCandidateJob from "./Components/HR/CandidateJobDetails/HRCandidateJobDetails";
-import WelcomeForClient from "./Components/welcomeForClient";
+import WelcomeForClient from "./Components/Client/welcomeForClient";
+import Careers from "./Components/Home/Careers/Careers";
+import HRDetailsForm from "./Components/Client/HRDetailsForm/HRDetailsForm";
+import ProtectedRoute from "./Components/Home/ProtectedRoute";
 
 
 function App() {
@@ -64,6 +67,8 @@ function App() {
          <Route path="/client_dashboard" element={<ClientDashboard/>}/>
          <Route path="/post_detail" element={<PostDetailsForm/>}/>
          <Route path="/client_profile" element={<ClientProfile/>}/>
+         <Route path="/careers" element={<Careers/>}/>
+
          {/* <Route path="/" element={<AdminDashboard/>} />
          <Route path="/candidate_database_page" element={<CandidateDatabasePage/>} />
          <Route path="/client_database_page" element={<ClientDatabasePage/>} />
@@ -80,6 +85,8 @@ function App() {
 {/* <CandidateFeedback/> */}
 {/* <FeedbackForm/> */}
     {/* <HRCandidateJob/> */}
+    {/* <HRDetailsForm/> */}
+    {/* <ProtectedRoute/> */}
     </div>
   );
 }
