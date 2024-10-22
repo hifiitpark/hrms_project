@@ -287,13 +287,13 @@ const PostDetailsForm = () => {
                   type="date"
                   placeholder="Interview Date"
                   className="input-field"
-                  {...register(`interview_dates.${index}.interview_date`, { required: 'Interview Date is required' })}
+                  {...register(`interview_dates.${index}`.interview_date, { required: 'Interview Date is required' })}
                 />
                 <input
                   type="text"
                   placeholder="Interview Location"
                   className="input-field"
-                  {...register(`interview_dates.${index}.interview_location`, { required: 'Interview Location is required' })}
+                  {...register(`interview_dates.${index}`.interview_location, { required: 'Interview Location is required' })}
                 />
                 {interviewFields.length > 1 && (
                   <button type="button" className="remove" onClick={() => removeInterview(index)}>Remove</button>

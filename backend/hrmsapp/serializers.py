@@ -1,61 +1,129 @@
-from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Contact, HiringDetails
-import uuid  # To generate unique usernames if needed
+from .models import Contact,AboutMe,Courses,Certifications,EducationDetails,ExperienceDetails,Skills,RequiredFiles,HRDetails,CompanyDetails,HiringDetails
+from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+from rest_framework import serializers
 
-class SignupSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['first_name', 'last_name', 'email', 'password']  # No username field
-        extra_kwargs = {'password': {'write_only': True}}  # Ensure password is write-only
-
-    def create(self, validated_data):
-        # Auto-generate a unique username using the email or a UUID
-        username = validated_data['email'].split('@')[0]  # Or use validated_data['first_name'] + validated_data['last_name']
-        if User.objects.filter(username=username).exists():
-            username = f"{username}_{uuid.uuid4().hex[:8]}"  # Make username unique if it already exists
-        
-        user = User(
-            username=username,
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
-            email=validated_data['email'],
-        )
-        user.set_password(validated_data['password'])  # Ensure the password is hashed
-        user.save()
-        return user
-
-class LoginSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['email', 'password']  # Use email for login instead of username
-        extra_kwargs = {'password': {'write_only': True}}  # Ensure password is write-only
-
-    def validate(self, attrs):
-        email = attrs.get('email')
-        password = attrs.get('password')
-
-        if email and password:
-            try:
-                user = User.objects.get(email=email)
-            except User.DoesNotExist:
-                raise serializers.ValidationError("Invalid email or password.")
-
-            if not user.check_password(password):
-                raise serializers.ValidationError("Invalid email or password.")
-
-            attrs['user'] = user
-        else:
-            raise serializers.ValidationError("Email and password are required.")
-
-        return attrs
 
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
-        fields = '__all__'  # Automatically include all fields in the model
+        fields = '__all__'
 
+
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'password']
+
+    def create(self, validated_data):
+        user = User(
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+            username=validated_data['email'],
+            email=validated_data['email'],
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+
+
+class AboutMeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AboutMe
+        fields = '__all__'
+
+class EducationDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EducationDetails
+        fields = '__all__'
+
+class ExperienceDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExperienceDetails
+        fields = '__all__'
+
+class CoursesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Courses
+        fields = '__all__'
+
+class CertificationsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Certifications
+        fields = '__all__'
+
+class SkillsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Skills
+        fields = '__all__'
+
+class RequiredFilesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RequiredFiles
+        fields = '__all__'
+
+
+class HRDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HRDetails
+        fields = '__all__'
+
+# Company Details Serializer
+class CompanyDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompanyDetails
+        fields = '__all__'
+
+    # Validate company email
+    def validate_company_email(self, value):
+        if not value:
+            raise serializers.ValidationError("Company email is required.")
+        if not "@" in value:
+            raise serializers.ValidationError("Enter a valid email address.")
+        return value
+
+    # Validate company phone number
+    def validate_company_phone(self, value):
+        if not value:
+            raise serializers.ValidationError("Company phone number is required.")
+        if len(value) < 10:  # Assuming phone number should be at least 10 digits
+            raise serializers.ValidationError("Phone number must be at least 10 digits long.")
+        return value
+
+    # Validate company name
+    def validate_company_name(self, value):
+        if not value:
+            raise serializers.ValidationError("Company name is required.")
+        return value
+
+    # Validate company employees (should be a positive integer)
+    def validate_company_employees(self, value):
+        if not isinstance(value, int) or value <= 0:
+            raise serializers.ValidationError("Number of employees should be a positive integer.")
+        return value
+
+    # Validate annual income (should be a positive number)
+    def validate_annual_income(self, value):
+        if value is None or value < 0:
+            raise serializers.ValidationError("Annual income must be a positive number.")
+        return value
+
+    # Validate net profit (should be a positive number)
+    def validate_net_profit(self, value):
+        if value is None or value < 0:
+            raise serializers.ValidationError("Net profit must be a positive number.")
+        return value
+
+    # Validate start year (should be a valid year)
+    def validate_start_year(self, value):
+        if value is None or value < 1900 or value > 2100:  # Assuming the year should be between 1900 and 2100
+            raise serializers.ValidationError("Enter a valid year for the start year.")
+        return value
+    
 class HiringDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = HiringDetails
-        fields = '__all__'  # Automatically include all fields in the model
+        fields = '__all__'

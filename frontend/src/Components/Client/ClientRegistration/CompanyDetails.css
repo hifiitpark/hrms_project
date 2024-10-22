@@ -48,15 +48,15 @@ body {
     box-sizing: border-box;
   }
   
-  .button-group {
+  .button-group1 {
     display: flex;
-    justify-content: space-between;
+    justify-content:end;
     margin-top: 10px;
   }
   
-  .add-more,
-  .remove {
-    flex: 1;
+  .add-more-client,
+  .remove-client {
+    /* flex: 1; */
     padding: 10px;
     margin-right: 5px;
     background-color: #0E0F30;
@@ -64,14 +64,14 @@ body {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    text-align: center;
+    margin-bottom: 10px;
   }
   
   .add-more:hover {
     background-color: #0E0F40;
   }
   
-  .remove {
+  .remove-client {
     background-color: #DC5C00;
   }
   

@@ -37,6 +37,9 @@ import CandidateFeedback from "./Components/Candidate/CandidateFeedback/Candidat
 import FeedbackForm from "./Components/Client/ClientFeedback/CandidateFeedback";
 import HRCandidateJob from "./Components/HR/CandidateJobDetails/HRCandidateJobDetails";
 import WelcomeForClient from "./Components/welcomeForClient";
+import Careers from "./Components/Home/Careers/Careers";
+import HRDetailsForm from "./Components/Admin/HRDetailsForm/HRDetailsForm";
+import VerifyOtp from "./Components/Home/VerifyOtp";
 
 
 function App() {
@@ -44,12 +47,14 @@ function App() {
     <div>
        <Routes>
         <Route path="/" element={<Home/>} />
+        <Route path="/careers" element={<Careers/>} />
          <Route path="/contact" element={<ContactUs/>}/>
          <Route path="/about" element={<AboutUs/>}/>
          <Route path="/login" element={<Login />}/>
          <Route path="/forgot" element={<Forgot />}/>
          <Route path="/changepassword" element={<Changepassword/>}/>
          <Route path="/signup" element={<Signup/>}/>
+         <Route path="/verify_otp" element={<VerifyOtp/>} />
          <Route path="/newpassword" element={<NewPassword/>}/>
          <Route path="/otp" element={<Otp/>}/>
          <Route path="/candidate_reg" element={<CandidateRegistrationForm/>}/>
@@ -64,6 +69,7 @@ function App() {
          <Route path="/client_dashboard" element={<ClientDashboard/>}/>
          <Route path="/post_detail" element={<PostDetailsForm/>}/>
          <Route path="/client_profile" element={<ClientProfile/>}/>
+         <Route path="/hrdetail" element={<HRDetailsForm/>}/>
          {/* <Route path="/" element={<AdminDashboard/>} />
          <Route path="/candidate_database_page" element={<CandidateDatabasePage/>} />
          <Route path="/client_database_page" element={<ClientDatabasePage/>} />
@@ -80,6 +86,7 @@ function App() {
 {/* <CandidateFeedback/> */}
 {/* <FeedbackForm/> */}
     {/* <HRCandidateJob/> */}
+    {/* <HRDetailsForm/> */}
     </div>
   );
 }

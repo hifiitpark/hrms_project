@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import './HRDetailsForm.css';
+import { getCookie } from '../../../utils/getCookie';
 
 function HRDetailsForm() {
-
-    const [HRdetails, setHRDetails] = useState([{ HRName: '', HRPhoneNumber: '', HREmail: '', HRSocialMedia: '' }]);
+    const [HRdetails, setHRDetails] = useState([
+        { hr_name: '', hr_phone_number: '', hr_email: '', hr_social_media: '' }
+    ]);
+    
 
     const handleHRDetails = (index, e) => {
         const { name, value } = e.target;
@@ -13,7 +17,7 @@ function HRDetailsForm() {
     };
 
     const addHRDetails = () => {
-        setHRDetails([...HRdetails, { HRName: '', HRPhoneNumber: '', HREmail: '', HRSocialMedia: '' }]);
+        setHRDetails([...HRdetails, { hr_name: '', hr_phone_number: '', hr_email: '', hr_social_media: '' }]);
     };
 
     const removeHRDetails = (index) => {
@@ -22,50 +26,75 @@ function HRDetailsForm() {
         setHRDetails(newHRDetails);
     };
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const csrftoken = getCookie('csrftoken');
+    
+        try {
+            const response = await fetch('http://localhost:8000/api/hrdetails/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(HRdetails[0])  // Adjust if you want to submit multiple details
+            });
+    
+            if (response.ok) {
+                alert('HR Details submitted successfully!');
+            } else {
+                alert('Error submitting HR Details.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+    
+
     return (
         <div className='detail'>
-            <form>
-                {HRdetails.map((HRDetail, index) => (
+            <form onSubmit={handleSubmit}>
+                {HRdetails.map((items, index) => (
                     <div key={index} className="socialmedia-group">
                         <div className="section about">
                             <h2>HR Details</h2>
                             <label>HR Name</label>
                             <input
                                 type="text"
-                                name="HRName"
+                                name="hr_name"
                                 placeholder="HR Name"
                                 className="input-field"
-                                value={HRDetail.HRName}
+                                value={items.hr_name}
                                 onChange={(e) => handleHRDetails(index, e)}
                             />
 
                             <label>HR Phone Number</label>
                             <input
                                 type="text"
-                                name="HRPhoneNumber"
+                                name="hr_phone_number"
                                 placeholder="HR Phone Number"
                                 className="input-field"
-                                value={HRDetail.HRPhoneNumber}
+                                value={items.hr_phone_number}
                                 onChange={(e) => handleHRDetails(index, e)}
                             />
 
                             <label>HR Email</label>
                             <input
-                                type="text"
-                                name="HREmail"
+                                type="email"
+                                name="hr_email"
                                 placeholder="HR Email"
                                 className="input-field"
-                                value={HRDetail.HREmail}
+                                value={items.hr_email}
                                 onChange={(e) => handleHRDetails(index, e)}
                             />
 
                             <label>HR Social Media</label>
                             <input
                                 type="text"
-                                name="HRSocialMedia"
+                                name="hr_social_media"
                                 placeholder="HR Social Media"
                                 className="input-field"
-                                value={HRDetail.HRSocialMedia}
+                                value={items.hr_social_media}
                                 onChange={(e) => handleHRDetails(index, e)}
                             />
 
@@ -88,5 +117,3 @@ function HRDetailsForm() {
 }
 
 export default HRDetailsForm;
-
-   

@@ -1,11 +1,12 @@
 import React from 'react';
 import './Careers.css';
+import Header from '../Header/header';
+import Footer from '../Footer/footer';
 
 function Careers() {
   return (
     <div className="App">
-
-
+      <Header/>
       <div id="outer-main">
         <div className="main-container">
           <div className="secoundary-container" id="sc2">
@@ -118,8 +119,7 @@ function Careers() {
           </p>
         </div>
       </div>
-
-
+      <Footer/>
     </div>
   );
 }

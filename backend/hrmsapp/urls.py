@@ -1,15 +1,21 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import SignupViewSet, LoginViewSet, ContactViewSet, HiringDetailsViewSet
+from .views import UserRegistrationViewSet, ContactViewSet, UserProfileViewSet,HRDetailsViewSet,CompanyDetailsViewSet,HiringDetailsViewSet, login_view, logout_view, get_csrf_token,SignupView, SendOtpView, VerifyOtpView
 
-# Initialize the router
 router = DefaultRouter()
-router.register(r'contacts', ContactViewSet)  # Use router for contacts
-router.register(r'hiring-details', HiringDetailsViewSet, basename='hiringdetails')  # Use router for hiring details
+# router.register(r'register', UserRegistrationViewSet, basename='register')
+router.register(r'contacts', ContactViewSet)
+router.register(r'user-profile', UserProfileViewSet, basename='user-profile')
+router.register(r'hrdetails', HRDetailsViewSet)
+router.register(r'company-details', CompanyDetailsViewSet) 
+router.register(r'hiring-details', HiringDetailsViewSet, basename='hiringdetails')
 
-# Define the URL patterns
 urlpatterns = [
-    path('api/signup/', SignupViewSet.as_view(), name='signup'),  # Signup endpoint
-    path('api/login/', LoginViewSet.as_view(), name='login'),  # Login endpoint for session management
-    path('', include(router.urls)),  # Include the router URLs
+    path('', include(router.urls)),
+    path('login/', login_view, name='login'),
+    path('logout/', logout_view, name='logout'),
+    path('csrf-token/', get_csrf_token, name='get_csrf_token',),
+    path('register/', SignupView.as_view(), name='register'),
+    path('send_otp/', SendOtpView.as_view(), name='send_otp'),
+    path('verify_otp/', VerifyOtpView.as_view(), name='verify_otp'),
 ]

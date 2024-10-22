@@ -9,13 +9,16 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/system";
 import { useNavigate } from "react-router-dom";
-import Footer from "./Footer/footer"; // Ensure these paths are correct
-import Header from "./Header/header"; // Ensure these paths are correct
+import axios from "axios";
+import Footer from "./Footer/footer";
+import Header from "./Header/header";
 
-// Styled component for responsive layout
+// Utility function to get the CSRF token from cookies
+function getCookie(name) {
+  // Existing function
+}
+
 const ResponsiveBox = styled(Box)(({ theme }) => ({
-  display: "flex",
-  flexDirection: "row",
   [theme.breakpoints.down("sm")]: {
     flexDirection: "column",
   },
@@ -31,7 +34,6 @@ function Signup() {
 
   const navigate = useNavigate();
 
-  // Handle input change
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
@@ -39,43 +41,52 @@ function Signup() {
     });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:8000/api/api/signup/", {
-        method: "POST",
-        body: JSON.stringify(formData),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+        // Step 1: Sign up the user
+        const response = await axios.post(
+            "http://localhost:8000/api/register/",
+            formData,
+            {
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json",
+                },
+            }
+        );
 
-      if (!response.ok) {
-        const errorData = await response.text(); // Fetch error response
-        console.error("Error response:", errorData);
-        alert("Signup failed: " + errorData);
-        return;
-      }
+        if (response.status === 201) {
+            // Step 2: Generate OTP and send to email
+            const otpResponse = await axios.post(
+                "http://localhost:8000/api/send_otp/", 
+                { email: formData.email },
+                {
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
 
-      const data = await response.json();
-      alert("Signup successful");
-
-      // Reset the form
-      setFormData({
-        first_name: "",
-        last_name: "",
-        email: "",
-        password: "",
-      });
-
-      navigate("/choose_user_type"); // Redirect to the next page
+            if (otpResponse.status === 200) {
+                alert("Signup successful. An OTP has been sent to your email.");
+                localStorage.setItem("signupEmail", formData.email); // Store email for verification
+                navigate("/verify_otp"); // Redirect to OTP verification page
+            } else {
+                alert("Failed to send OTP: " + (otpResponse.data.detail || "Please try again."));
+                console.error(otpResponse.data);
+            }
+        } else {
+            alert("Signup failed: " + (response.data.detail || "Please try again."));
+            console.error(response.data);
+        }
     } catch (error) {
-      console.error("Error during signup:", error);
-      alert("An error occurred during signup. Please try again later.");
+        alert("An error occurred during signup. Please try again later.");
+        console.error("Error signing up:", error.response ? error.response.data : error.message);
     }
-  };
+};
 
   return (
     <div>
@@ -101,20 +112,46 @@ function Signup() {
             marginBottom: 2,
           }}
         >
-          <ResponsiveBox>
-            <Grid item xs={12} md={6} sx={{ display: "flex", flexDirection: "column", justifyContent: "center", p: 2 }}>
-              <Typography variant="h4" align="center" gutterBottom fontWeight={"bold"}>
-                Welcome!
+          <ResponsiveBox sx={{ display: "flex" }}>
+            <Grid
+              item
+              xs={12}
+              md={6}
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                p: 2,
+              }}
+            >
+              <Typography
+                variant="h4"
+                align="center"
+                gutterBottom
+                fontWeight={"bold"}
+              >
+                Welcome Back!
               </Typography>
-              <Typography variant="h6" align="center" gutterBottom fontWeight={"bold"}>
-                Join us and start your journey!
+              <Typography
+                variant="h6"
+                align="center"
+                gutterBottom
+                fontWeight={"bold"}
+              >
+                Welcome to your next opportunity.
               </Typography>
               <Typography variant="body1" align="center" gutterBottom>
-                Create your account to connect with top employers and take the next step in your career journey.
+                Log in to connect with top employers and take the next step in
+                your career journey.
               </Typography>
             </Grid>
-            <Grid item xs={12} md={6} sx={{ p: 2 }}>
-              <Typography variant="h4" align="center" gutterBottom fontWeight={"bold"}>
+            <Grid item xs={12} md={3} sx={{ p: 2 }}>
+              <Typography
+                variant="h4"
+                align="center"
+                gutterBottom
+                fontWeight={"bold"}
+              >
                 Sign Up
               </Typography>
               <form onSubmit={handleSubmit}>
