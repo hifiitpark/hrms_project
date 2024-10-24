@@ -15,7 +15,7 @@ import Header from "./Header/header";
 
 // Utility function to get the CSRF token from cookies
 function getCookie(name) {
-  // Existing function
+  // Existing function for retrieving CSRF token
 }
 
 const ResponsiveBox = styled(Box)(({ theme }) => ({
@@ -45,48 +45,37 @@ function Signup() {
     e.preventDefault();
 
     try {
-        // Step 1: Sign up the user
-        const response = await axios.post(
-            "http://localhost:8000/api/register/",
-            formData,
-            {
-                headers: {
-                    "X-CSRFToken": getCookie("csrftoken"),
-                    "Content-Type": "application/json",
-                },
-            }
-        );
-
-        if (response.status === 201) {
-            // Step 2: Generate OTP and send to email
-            const otpResponse = await axios.post(
-                "http://localhost:8000/api/send_otp/", 
-                { email: formData.email },
-                {
-                    headers: {
-                        "X-CSRFToken": getCookie("csrftoken"),
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
-
-            if (otpResponse.status === 200) {
-                alert("Signup successful. An OTP has been sent to your email.");
-                localStorage.setItem("signupEmail", formData.email); // Store email for verification
-                navigate("/verify_otp"); // Redirect to OTP verification page
-            } else {
-                alert("Failed to send OTP: " + (otpResponse.data.detail || "Please try again."));
-                console.error(otpResponse.data);
-            }
-        } else {
-            alert("Signup failed: " + (response.data.detail || "Please try again."));
-            console.error(response.data);
+      // Step 1: Generate OTP and send to email
+      const otpResponse = await axios.post(
+        "http://localhost:8000/api/send_otp/", // API to send OTP
+        { email: formData.email },
+        {
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json",
+          },
         }
+      );
+
+      if (otpResponse.status === 200) {
+        alert("An OTP has been sent to your email.");
+        localStorage.setItem("signupEmail", formData.email); // Store email for verification
+        localStorage.setItem("signupData", JSON.stringify(formData)); // Temporarily store the form data
+        navigate("/verify_otp"); // Redirect to OTP verification page
+      } else {
+        alert(
+          "Failed to send OTP: " + (otpResponse.data.detail || "Please try again.")
+        );
+        console.error(otpResponse.data);
+      }
     } catch (error) {
-        alert("An error occurred during signup. Please try again later.");
-        console.error("Error signing up:", error.response ? error.response.data : error.message);
+      alert("An error occurred. Please try again.");
+      console.error(
+        "Error:",
+        error.response ? error.response.data : error.message
+      );
     }
-};
+  };
 
   return (
     <div>

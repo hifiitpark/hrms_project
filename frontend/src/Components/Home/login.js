@@ -1,5 +1,3 @@
-// Login.js
-
 import React, { useState } from "react";
 import {
   Grid,
@@ -13,10 +11,10 @@ import {
 import { FaGoogle } from "react-icons/fa";
 import img2 from "../Assets/loginimg/welcome1.png";
 import { Link, useNavigate } from "react-router-dom";
+import axios from 'axios';
+import { getCookie } from '../../utils/getCookie'; // For CSRF token if needed
 import Header from "./Header/header";
 import Footer from "./Footer/footer";
-import axios from 'axios';
-import { getCookie } from '../../utils/getCookie';
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -26,53 +24,43 @@ function Login() {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
+  // Handle form submission for login
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      console.log('usha');
       const response = await axios.post(
-        'http://localhost:8000/api/token/', // Correct endpoint for JWT token
+        'http://localhost:8000/api/login/',  // Login API endpoint
         {
-          username: email, // Use 'username' if that is how you're set up, otherwise keep 'email' if your backend uses that
+          email: email,
           password: password,
         },
         {
           headers: {
-            'X-CSRFToken': getCookie('csrftoken'), // Ensure the CSRF token is correctly fetched
             'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),  // If CSRF token is required
           },
         }
       );
 
-      if (response.status === 200) { // Check for a successful response
-        const data = response.data;
-        if (data.access) { // Adjusted for access token
-          localStorage.setItem('authToken', data.access); // Store the access token
-          alert("Login successful");
-          navigate("/candidate_dashboard"); // Redirect to a secure page after successful login
-        } else {
-          alert("Login failed: Token not found in response.");
-        }
+      if (response.status === 200) {
+        // Save the authentication token
+        localStorage.setItem('authToken', response.data.token);
+
+        // Navigate to the dashboard after successful login
+        navigate("/candidate_dashboard");
       } else {
-        alert("Login failed: Please check your credentials and try again.");
-        console.error(response.data);
+        alert("Login failed: Invalid credentials");
       }
     } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          alert("Unauthorized: Incorrect credentials. Please try again.");
-        } else if (error.response.status === 500) {
-          alert("Internal Server Error: Please try again later.");
-        } else {
-          alert("An error occurred during login. Please try again later.");
-        }
+      console.error("Login error:", error.response ? error.response.data : error);
+      if (error.response && error.response.status === 500) {
+        alert("Server error: Please try again later");
       } else {
-        alert("Network error: Please check your connection and try again.");
+        alert("Login failed: Authentication failed.");
       }
-      console.error("Error:", error);
     }
-  }
+  };
 
   return (
     <Box sx={{ backgroundColor: "#b8a5fe" }}>

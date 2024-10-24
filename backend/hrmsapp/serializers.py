@@ -10,22 +10,14 @@ class ContactSerializer(serializers.ModelSerializer):
         model = Contact
         fields = '__all__'
 
-
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-
     class Meta:
-        model = User
-        fields = ['first_name', 'last_name', 'email', 'password']
+        model = User  # Your User model
+        fields = ['first_name', 'last_name', 'email', 'password']  # Include other fields as necessary
 
     def create(self, validated_data):
-        user = User(
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
-            username=validated_data['email'],
-            email=validated_data['email'],
-        )
-        user.set_password(validated_data['password'])
+        user = User(**validated_data)
+        user.set_password(validated_data['password'])  # Hash the password
         user.save()
         return user
 

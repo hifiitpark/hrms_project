@@ -85,7 +85,7 @@ const Footer = ({ activeButton, handleNavigation }) => {
           <Grid item xs={12} sm={4} lg={3}>
             <Typography variant="h6">Address</Typography>
             <Typography variant="body1">
-              Hi-Fi IT PARK, no-recovery@example.com
+              Hi-Fi IT PARK,hifiitpark@gmail.com
               <br />
               0461-233 1483
               <br />

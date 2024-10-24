@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 import os
-from pathlib import Path 
+from pathlib import Path
 import logging
 
 logger = logging.getLogger('django')
@@ -50,16 +50,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'hrmsapp',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'corsheaders',
+    'hrmsapp',
 ]
+
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
     ),
 }
 
@@ -87,6 +92,7 @@ CORS_ALLOWED_ORIGINS=[
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',  # React app URL
+    'http://localhost:8000',
 ]
 
 
@@ -172,8 +178,8 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTHENTICATION_BACKENDS = [
-    'path.to.EmailBackend',  # Replace with the actual import path
     'django.contrib.auth.backends.ModelBackend',
+    'hrmsapp.authentication_backend.EmailBackend',
 ]
 
 # AUTH_USER_MODEL = 'hrmsapp.User'
@@ -215,5 +221,6 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'pandiushak@gmail.com'  # Your email
 EMAIL_HOST_PASSWORD = 'vjjkyzhsbxviljzl'  # Your email password
+
 
 

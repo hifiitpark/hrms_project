@@ -3,12 +3,10 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework import status
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate,  logout, login
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
-from django.views.decorators.http import require_POST
 from django.utils.decorators import method_decorator
-import json
 from .models import (
     Contact, AboutMe, EducationDetails, ExperienceDetails, 
     Courses, Certifications, Skills, RequiredFiles,HRDetails,
@@ -23,10 +21,12 @@ from .serializers import (
     CompanyDetailsSerializer,HiringDetailsSerializer
 )
 from django.core.cache import cache
-from .utils import send_otp
+from .utils import create_otp, get_expected_otp, mark_otp_as_used, send_otp
 from django.contrib.auth.models import User
-
-
+from rest_framework.decorators import api_view, permission_classes
+from django.core.mail import send_mail
+import random
+import logging
 
 
 
@@ -46,36 +46,49 @@ class ContactViewSet(viewsets.ModelViewSet):
     serializer_class = ContactSerializer
 
 # User Registration View
+logger = logging.getLogger(__name__)
+
 class RegisterAPIView(APIView):
     permission_classes = [AllowAny]  # Allow access to everyone
 
     def post(self, request):
+        logger.debug(f"Received registration request with data: {request.data}")
+        
         serializer = UserRegistrationSerializer(data=request.data)
+        
         if serializer.is_valid():
-            serializer.save()
-            return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
+            try:
+                serializer.save()
+                logger.info("User created successfully.")
+                return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                logger.error(f"Error saving user: {e}")
+                return Response({'detail': 'An error occurred during registration.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        logger.warning(f"Invalid data: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# Login View
-@csrf_exempt  # Temporarily disable CSRF protection for this view (not recommended for production)
-@require_POST  # Ensure only POST requests are accepted
-def login_view(request):
-    try:
-        data = json.loads(request.body)  # Parse JSON data from the request body
-        email = data.get('email')
-        password = data.get('password')
+class LoginView(APIView):
+    permission_classes = [AllowAny]
 
-        # Authenticate the user based on email and password
-        user = authenticate(request, username=email, password=password)
+    def post(self, request):
+            email = request.data.get('email')
+            password = request.data.get('password')
 
-        if user is not None:
-            login(request, user)  # Log the user in, creating a session
-            return JsonResponse({'status': 'success', 'message': 'Login successful'}, status=200)
-        else:
-            return JsonResponse({'status': 'error', 'message': 'Invalid credentials'}, status=400)
-    except json.JSONDecodeError:
-        return JsonResponse({'status': 'error', 'message': 'Invalid JSON data'}, status=400)
-    
+            try:
+                # Get the user by email
+                user = User.objects.get(email=email)
+                # Authenticate using username (which is the email in this case) and password
+                user = authenticate(request, username=user.username, password=password)
+                
+                if user is not None:
+                    login(request, user)
+                    return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
+                else:
+                    return Response({"error": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+            except User.DoesNotExist:
+                return Response({"error": "User does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
 # Logout View
 @csrf_exempt
 def logout_view(request):
@@ -167,26 +180,85 @@ class SignupView(APIView):
 
         return Response({"detail": "User created successfully. OTP sent to email."}, status=status.HTTP_201_CREATED)
 
-class SendOtpView(APIView):
-    permission_classes = [AllowAny]
-    def post(self, request):
-        email = request.data.get('email')
-        if User.objects.filter(email=email).exists():
-            otp = send_otp(email)
-            cache.set(email, otp, timeout=300)  # Cache OTP for 5 minutes
-            return Response({"detail": "OTP sent to email."}, status=status.HTTP_200_OK)
-        return Response({"detail": "Email not found."}, status=status.HTTP_404_NOT_FOUND)
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])  # This allows access without authentication
+def send_otp(request):
+    email = request.data.get('email')
+    
+    if not email:
+        return Response({"detail": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-class VerifyOtpView(APIView):
+    # Simulate OTP generation and sending logic
+    otp = random.randint(1000, 9999)
+    otp = create_otp(email)
+    # Send the OTP via email
+    send_mail(
+        'Your OTP Code',
+        f'Your OTP code is {otp}',
+        'srivaniagency@example.com',  # Replace with your email
+        [email],
+        fail_silently=False,
+    )
+
+    return Response({"detail": "OTP sent successfully."}, status=status.HTTP_200_OK)
+
+
+logger = logging.getLogger(__name__)
+
+class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
+
     def post(self, request):
         email = request.data.get('email')
         otp = request.data.get('otp')
 
-        cached_otp = cache.get(email)
+        logger.debug(f"Received OTP verification request for email: {email} with OTP: {otp}")
 
-        if cached_otp and str(cached_otp) == str(otp):
-            cache.delete(email)  # Delete the OTP after verification
-            return Response({"detail": "OTP verified successfully."}, status=status.HTTP_200_OK)
+        # Validate that both email and OTP are provided
+        if not email or not otp:
+            logger.warning("Email or OTP not provided.")
+            return Response({"detail": "Email and OTP are required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"detail": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            # Retrieve the expected OTP for the provided email
+            expected_otp = get_expected_otp(email)
+            logger.debug(f"Expected OTP for {email}: {expected_otp}")
+
+            # Check if an OTP exists for this email
+            if expected_otp is None:
+                logger.error(f"Email {email} not found in the system.")
+                return Response({"detail": "Email not found."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Verify if the provided OTP matches the expected OTP
+            if otp == expected_otp:
+                # Mark OTP as used
+                try:
+                    mark_otp_as_used(email)
+                    logger.info(f"OTP for email {email} verified and marked as used.")
+                    return Response({"detail": "OTP verified successfully."}, status=status.HTTP_200_OK)
+                except Exception as mark_otp_error:
+                    logger.error(f"Failed to mark OTP as used for {email}: {mark_otp_error}")
+                    return Response({"detail": "Error marking OTP as used."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            # If OTP is incorrect
+            logger.warning(f"Invalid OTP provided for email {email}.")
+            return Response({"detail": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            logger.error(f"Error during OTP verification for email {email}: {e}")
+            return Response({"detail": "An error occurred while verifying OTP."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class ResendOTPView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({"detail": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        otp = create_otp(email)  # Call your create_otp function
+        # Optionally send the OTP via email
+        send_otp(email, otp)  # Implement this function as needed
+
+        return Response({"detail": "OTP has been resent."}, status=status.HTTP_200_OK)

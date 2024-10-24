@@ -1,5 +1,38 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AbstractUser
+from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth import get_user_model
+from datetime import timedelta
+from django.utils import timezone
+
+class OtpModel(models.Model):
+    email = models.EmailField()
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + timedelta(minutes=10)  # 10-minute expiry
+
+
+
+class CustomUser1(AbstractUser):
+    # Add related_name to avoid conflicts
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='customuser_set',  # Update the related_name to avoid conflict
+        blank=True,
+        help_text='The groups this user belongs to.',
+        verbose_name='groups',
+    )
+
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='customuser_permissions_set',  # Update the related_name to avoid conflict
+        blank=True,
+        help_text='Specific permissions for this user.',
+        verbose_name='user permissions',
+    )
+
 
 #contactus
 class Contact(models.Model):
@@ -174,3 +207,32 @@ class HiringDetails(models.Model):
         dates = self.interview_dates.split(',') if self.interview_dates else []
         locations = self.interview_locations.split(',') if self.interview_locations else []
         return list(zip(dates, locations))
+    
+
+
+
+
+
+
+class EmailBackend(ModelBackend):
+    def authenticate(self, request, username=None, password=None, **kwargs):
+        UserModel = get_user_model()
+        try:
+            # Use email for authentication
+            user = UserModel.objects.get(email=username)
+        except UserModel.DoesNotExist:
+            return None
+        if user.check_password(password):
+            return user
+        return None
+    
+
+
+class OTP(models.Model):
+    email = models.EmailField(unique=True)  # Ensure email is unique for each OTP
+    otp = models.CharField(max_length=6)  # Assuming OTPs are 6 digits
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)  # This field indicates whether the OTP has been used
+
+    def __str__(self):
+        return f"OTP for {self.email}: {self.otp}"
